@@ -14,6 +14,15 @@
 
 #include "SparkFun_MMC5983MA_IO.h"
 #include "SparkFun_MMC5983MA_Arduino_Library_Constants.h"
+#include <ESP32DMASPIMaster.h>
+
+// Define SPI bus for magnetometer
+ESP32DMASPI::Master master;
+
+static constexpr size_t BUFFER_SIZE = 256;
+static constexpr size_t QUEUE_SIZE = 1;
+uint8_t *dma_tx_buf;
+uint8_t *dma_rx_buf;
 
 // Read operations must have the most significant bit set
 #define SPI_READ 0x80
@@ -32,40 +41,19 @@ void SFE_MMC5983MA_IO::initSPISettings()
     _mmcSpiSettings = SPISettings(2000000, MSBFIRST, SPI_MODE0);
 }
 
-bool SFE_MMC5983MA_IO::begin(uint8_t csPin, SPIClass &spiPort)
+bool SFE_MMC5983MA_IO::begin(spi_config config, SPISettings userSettings)
 {
-    useSPI = true;
-    _csPin = csPin;
-    pinMode(_csPin, OUTPUT);
-    digitalWrite(_csPin, HIGH);
-    _spiPort = &spiPort;
+    // to use DMA buffer, use these methods to allocate buffer
+    dma_tx_buf = master.allocDMABuffer(BUFFER_SIZE);
+    dma_rx_buf = master.allocDMABuffer(BUFFER_SIZE);
 
-    initSPISettings();
+    master.setDataMode(userSettings._dataMode);           // default: SPI_MODE0
+    master.setFrequency(userSettings._clock);            // default: 8MHz
+    master.setMaxTransferSize(BUFFER_SIZE);  // default: 4092 bytes
+    master.setQueueSize(QUEUE_SIZE);         // default: 1
 
-    return true;
-}
-
-bool SFE_MMC5983MA_IO::begin(uint8_t csPin, SPISettings userSettings)
-{
-    useSPI = true;
-    _csPin = csPin;
-    pinMode(_csPin, OUTPUT);
-    digitalWrite(_csPin, HIGH);
-
-    _mmcSpiSettings = userSettings;
-
-    return true;
-}
-
-bool SFE_MMC5983MA_IO::begin(uint8_t csPin, SPISettings userSettings, SPIClass &spiPort)
-{
-    useSPI = true;
-    _csPin = csPin;
-    pinMode(_csPin, OUTPUT);
-    digitalWrite(_csPin, HIGH);
-    _spiPort = &spiPort;
-
-    _mmcSpiSettings = userSettings;
+    // begin() after setting
+    master.begin(config.spi_bus, config.sck, config.miso, config.mosi, config.ss);  // default: HSPI (please refer README for pin assignments)
 
     return true;
 }
@@ -75,12 +63,8 @@ bool SFE_MMC5983MA_IO::isConnected()
     bool result;
     if (useSPI)
     {
-        _spiPort->beginTransaction(_mmcSpiSettings);
-        digitalWrite(_csPin, LOW);
-        _spiPort->transfer(PROD_ID_REG | SPI_READ);
-        uint8_t readback = _spiPort->transfer(DUMMY);
-        digitalWrite(_csPin, HIGH);
-        _spiPort->endTransaction();
+        uint8_t readback = 0;
+        return readMultipleBytes(PROD_ID_REG, readback, 1);
         result = (readback == PROD_ID);
     }
     else
@@ -102,12 +86,7 @@ bool SFE_MMC5983MA_IO::writeMultipleBytes(const uint8_t registerAddress, uint8_t
     bool success = true;
     if (useSPI)
     {
-        _spiPort->beginTransaction(_mmcSpiSettings);
-        digitalWrite(_csPin, LOW);
-        _spiPort->transfer(registerAddress | SPI_READ);
-        _spiPort->transfer(buffer, packetLength);
-        digitalWrite(_csPin, HIGH);
-        _spiPort->endTransaction();
+        const size_t received_bytes = master.transfer(registerAddress, buffer, packetLength);
     }
     else
     {
@@ -125,12 +104,7 @@ bool SFE_MMC5983MA_IO::readMultipleBytes(const uint8_t registerAddress, uint8_t 
     bool success = true;
     if (useSPI)
     {
-        _spiPort->beginTransaction(_mmcSpiSettings);
-        digitalWrite(_csPin, LOW);
-        _spiPort->transfer(registerAddress | SPI_READ);
-        _spiPort->transfer(buffer, packetLength);
-        digitalWrite(_csPin, HIGH);
-        _spiPort->endTransaction();
+        const size_t received_bytes = master.transfer(registerAddress | SPI_READ, buffer, packetLength);
     }
     else
     {
@@ -172,12 +146,7 @@ bool SFE_MMC5983MA_IO::writeSingleByte(const uint8_t registerAddress, const uint
     bool success = true;
     if (useSPI)
     {
-        _spiPort->beginTransaction(_mmcSpiSettings);
-        digitalWrite(_csPin, LOW);
-        _spiPort->transfer(registerAddress);
-        _spiPort->transfer(value);
-        digitalWrite(_csPin, HIGH);
-        _spiPort->endTransaction();
+        return writeMultipleBytes(registerAddress, buffer, 1);
     }
     else
     {

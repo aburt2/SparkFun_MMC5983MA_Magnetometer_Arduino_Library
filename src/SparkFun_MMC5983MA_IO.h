@@ -19,14 +19,20 @@
 #include <Wire.h>
 #include <SPI.h>
 
+struct spi_config {
+  uint8_t spi_bus;
+  int sck; 
+  int miso;
+  int mosi; 
+  int ss;
+
+  spi_config(uint8_t _spi_bus, int _sck, int _miso, int _mosi, int _ss) : spi_bus(_spi_bus), sck(_sck), miso(_miso), mosi(_mosi), ss(_ss) {};
+}
+
 class SFE_MMC5983MA_IO
 {
 public:
   // Communication interfaces
-  SPIClass *_spiPort = nullptr;
-  uint8_t _csPin = 0;
-  SPISettings _mmcSpiSettings;
-
   TwoWire *_i2cPort = nullptr;
   uint8_t _address = 0;
   bool useSPI = false;
@@ -43,14 +49,8 @@ public:
   // Configures and starts the I2C I/O layer.
   bool begin(TwoWire &wirePort);
 
-  // Configures and starts the SPI I/O layer.
-  bool begin(uint8_t csPin, SPIClass &spiPort = SPI);
-
-  // Configures the SPI I/O layer with the given chip select and SPI settings provided by the user.
-  bool begin(uint8_t csPin, SPISettings userSettings);
-
-  // Configures the SPI I/O layer with the given chip select and SPI settings provided by the user. and the spiClass
-  bool begin(uint8_t csPin, SPISettings userSettings, SPIClass &spiPort);
+  // Configures the SPI I/O layer using ESP32SPI DMA rather then Arduino SPI class
+  bool begin(spi_config config, SPISettings userSettings);
 
   // Returns true if we get the correct product ID from the device.
   bool isConnected();
