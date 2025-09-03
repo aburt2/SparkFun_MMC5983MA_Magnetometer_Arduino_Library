@@ -55,7 +55,7 @@ bool SFE_MMC5983MA_IO::begin(spi_config cfg, SPISettings userSettings)
         .address_bits = 7,
         .mode = userSettings._dataMode,          //SPI mode 3
         .clock_speed_hz = userSettings._clock,
-        .input_delay_ns = 0, 
+        .input_delay_ns = 50, // according to datasheet
         .spics_io_num = mag_ctx.cfg.ss,
         .flags = SPI_DEVICE_HALFDUPLEX,
         .queue_size = 1,
