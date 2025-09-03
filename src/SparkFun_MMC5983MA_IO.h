@@ -21,7 +21,8 @@
 
 class SFE_MMC5983MA_IO
 {
-private:
+public:
+  // Communication interfaces
   SPIClass *_spiPort = nullptr;
   uint8_t _csPin = 0;
   SPISettings _mmcSpiSettings;
@@ -29,8 +30,7 @@ private:
   TwoWire *_i2cPort = nullptr;
   uint8_t _address = 0;
   bool useSPI = false;
-
-public:
+  
   // Default empty constructor.
   SFE_MMC5983MA_IO() = default;
 
@@ -50,7 +50,7 @@ public:
   bool begin(const uint8_t csPin, SPISettings userSettings);
 
   // Configures the SPI I/O layer with the given chip select and SPI settings provided by the user. and the spiClass
-  bool begin(const uint8_t csPin, SPISettings userSettings, SPIClass &spiPort = SPI);
+  bool begin(const uint8_t csPin, SPISettings userSettings, SPIClass &spiPort);
 
   // Returns true if we get the correct product ID from the device.
   bool isConnected();

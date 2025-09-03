@@ -74,7 +74,7 @@ public:
   // Initializes MMC5983MA using SPI
   bool begin(uint8_t csPin, SPIClass& spiPort = SPI);
   bool begin(uint8_t csPin, SPISettings userSettings);
-  bool begin(uint8_t csPin, SPISettings userSettings, SPIClass& spiPort = SPI);
+  bool begin(uint8_t csPin, SPISettings userSettings, SPIClass& spiPort);
 
   // Polls if MMC5983MA is connected and if chip ID matches MMC5983MA chip id.
   bool isConnected();
