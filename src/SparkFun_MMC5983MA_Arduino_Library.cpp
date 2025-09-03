@@ -54,7 +54,7 @@ bool SFE_MMC5983MA::setShadowBit(uint8_t registerAddress, const uint8_t bitMask,
     {
         *shadowRegister |= bitMask;
         if (doWrite)
-            return (mmc_io.writeSingleByte(registerAddress, shadowRegister));
+            return (mmc_io.writeSingleByte(registerAddress, *shadowRegister));
         return true;
     }
 
@@ -100,7 +100,7 @@ bool SFE_MMC5983MA::clearShadowBit(uint8_t registerAddress, const uint8_t bitMas
     {
         *shadowRegister &= ~bitMask;
         if (doWrite)
-            return (mmc_io.writeSingleByte(registerAddress, shadowRegister));
+            return (mmc_io.writeSingleByte(registerAddress, *shadowRegister));
         return true;
     }
 

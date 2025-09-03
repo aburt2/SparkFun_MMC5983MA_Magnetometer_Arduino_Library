@@ -19,21 +19,34 @@
 #include <Wire.h>
 #include <SPI.h>
 
+#include "driver/spi_master.h"
+#include "driver/gpio.h"
+#include "sdkconfig.h"
+
 struct spi_config {
-  uint8_t spi_bus = HSPI;
-  int sck = -1; 
-  int miso = -1;
-  int mosi = -1; 
-  int ss = -1;
+  spi_host_device_t spi_bus = SPI3_HOST;
+  gpio_num_t sck; 
+  gpio_num_t miso;
+  gpio_num_t mosi; 
+  gpio_num_t ss;
 
   // spi_config() : {};
   // spi_config(uint8_t _spi_bus, int _sck, int _miso, int _mosi, int _ss) : spi_bus(_spi_bus), sck(_sck), miso(_miso), mosi(_mosi), ss(_ss) {};
+};
+
+/// Context (config and data) of the spi_eeprom
+struct mag_context_t {
+    spi_config cfg;
+    spi_device_handle_t spi;    ///< SPI device handle
+    SemaphoreHandle_t ready_sem; ///< Semaphore for ready signal
 };
 
 class SFE_MMC5983MA_IO
 {
 public:
   // Communication interfaces
+  mag_context_t mag_ctx; // spi configuration
+
   TwoWire *_i2cPort = nullptr;
   uint8_t _address = 0;
   bool useSPI = false;
@@ -51,7 +64,7 @@ public:
   bool begin(TwoWire &wirePort);
 
   // Configures the SPI I/O layer using ESP32SPI DMA rather then Arduino SPI class
-  bool begin(spi_config config, SPISettings userSettings);
+  bool begin(spi_config cfg, SPISettings userSettings);
 
   // Returns true if we get the correct product ID from the device.
   bool isConnected();
@@ -60,7 +73,7 @@ public:
   bool readSingleByte(const uint8_t registerAddress, uint8_t *buffer);
 
   // Writes a single uint8_t into a register.
-  bool writeSingleByte(const uint8_t registerAddress, uint8_t *value);
+  bool writeSingleByte(const uint8_t registerAddress, uint8_t value);
 
   // Reads multiple bytes from a register into buffer uint8_t array.
   bool readMultipleBytes(const uint8_t registerAddress, uint8_t *const buffer, const uint8_t packetLength);
