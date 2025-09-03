@@ -20,14 +20,15 @@
 #include <SPI.h>
 
 struct spi_config {
-  uint8_t spi_bus;
-  int sck; 
-  int miso;
-  int mosi; 
-  int ss;
+  uint8_t spi_bus = HSPI;
+  int sck = -1; 
+  int miso = -1;
+  int mosi = -1; 
+  int ss = -1;
 
-  spi_config(uint8_t _spi_bus, int _sck, int _miso, int _mosi, int _ss) : spi_bus(_spi_bus), sck(_sck), miso(_miso), mosi(_mosi), ss(_ss) {};
-}
+  // spi_config() : {};
+  // spi_config(uint8_t _spi_bus, int _sck, int _miso, int _mosi, int _ss) : spi_bus(_spi_bus), sck(_sck), miso(_miso), mosi(_mosi), ss(_ss) {};
+};
 
 class SFE_MMC5983MA_IO
 {
@@ -59,7 +60,7 @@ public:
   bool readSingleByte(const uint8_t registerAddress, uint8_t *buffer);
 
   // Writes a single uint8_t into a register.
-  bool writeSingleByte(const uint8_t registerAddress, const uint8_t value);
+  bool writeSingleByte(const uint8_t registerAddress, uint8_t *value);
 
   // Reads multiple bytes from a register into buffer uint8_t array.
   bool readMultipleBytes(const uint8_t registerAddress, uint8_t *const buffer, const uint8_t packetLength);

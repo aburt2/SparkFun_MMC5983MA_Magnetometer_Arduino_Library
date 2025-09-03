@@ -54,7 +54,7 @@ bool SFE_MMC5983MA::setShadowBit(uint8_t registerAddress, const uint8_t bitMask,
     {
         *shadowRegister |= bitMask;
         if (doWrite)
-            return (mmc_io.writeSingleByte(registerAddress, *shadowRegister));
+            return (mmc_io.writeSingleByte(registerAddress, shadowRegister));
         return true;
     }
 
@@ -100,7 +100,7 @@ bool SFE_MMC5983MA::clearShadowBit(uint8_t registerAddress, const uint8_t bitMas
     {
         *shadowRegister &= ~bitMask;
         if (doWrite)
-            return (mmc_io.writeSingleByte(registerAddress, *shadowRegister));
+            return (mmc_io.writeSingleByte(registerAddress, shadowRegister));
         return true;
     }
 
@@ -195,21 +195,9 @@ bool SFE_MMC5983MA::begin(TwoWire &wirePort)
     return isConnected();
 }
 
-bool SFE_MMC5983MA::begin(uint8_t userCSPin, SPIClass &spiPort)
+bool SFE_MMC5983MA::begin(spi_config config, SPISettings userSettings)
 {
-    bool success = mmc_io.begin(userCSPin, spiPort);
-    return isConnected();
-}
-
-bool SFE_MMC5983MA::begin(uint8_t userCSPin, SPISettings userSettings)
-{
-    bool success = mmc_io.begin(userCSPin, userSettings);
-    return isConnected();
-}
-
-bool SFE_MMC5983MA::begin(uint8_t userCSPin, SPISettings userSettings, SPIClass &spiPort)
-{
-    bool success = mmc_io.begin(userCSPin, userSettings, spiPort);
+    bool success = mmc_io.begin(config, userSettings);
     return isConnected();
 }
 

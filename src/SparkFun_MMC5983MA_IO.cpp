@@ -20,7 +20,7 @@
 ESP32DMASPI::Master master;
 
 static constexpr size_t BUFFER_SIZE = 256;
-static constexpr size_t QUEUE_SIZE = 1;
+static constexpr size_t QUEUE_SIZE = 2;
 uint8_t *dma_tx_buf;
 uint8_t *dma_rx_buf;
 
@@ -34,18 +34,13 @@ bool SFE_MMC5983MA_IO::begin(TwoWire &i2cPort)
     return isConnected();
 }
 
-void SFE_MMC5983MA_IO::initSPISettings()
-{
-    // CPOL = 1, CPHA = 1 : SPI Mode 3 according to datasheet
-    //  In practice SPI_MODE0 is what worked.
-    _mmcSpiSettings = SPISettings(2000000, MSBFIRST, SPI_MODE0);
-}
-
 bool SFE_MMC5983MA_IO::begin(spi_config config, SPISettings userSettings)
 {
     // to use DMA buffer, use these methods to allocate buffer
     dma_tx_buf = master.allocDMABuffer(BUFFER_SIZE);
     dma_rx_buf = master.allocDMABuffer(BUFFER_SIZE);
+
+    //
 
     master.setDataMode(userSettings._dataMode);           // default: SPI_MODE0
     master.setFrequency(userSettings._clock);            // default: 8MHz
@@ -63,9 +58,8 @@ bool SFE_MMC5983MA_IO::isConnected()
     bool result;
     if (useSPI)
     {
-        uint8_t readback = 0;
-        return readMultipleBytes(PROD_ID_REG, readback, 1);
-        result = (readback == PROD_ID);
+        return readMultipleBytes(PROD_ID_REG, dma_rx_buf, 1);
+        result = (dma_rx_buf[0] == PROD_ID);
     }
     else
     {
@@ -86,7 +80,12 @@ bool SFE_MMC5983MA_IO::writeMultipleBytes(const uint8_t registerAddress, uint8_t
     bool success = true;
     if (useSPI)
     {
-        const size_t received_bytes = master.transfer(registerAddress, buffer, packetLength);
+        dma_tx_buf[0] = registerAddress;
+        memset(dma_rx_buf, 0, BUFFER_SIZE);
+        master.queue(dma_tx_buf, NULL, 1);
+        master.queue(NULL, dma_rx_buf, packetLength);
+        const std::vector<size_t> received_bytes = master.wait();
+        memcpy(buffer, &received_bytes[1], packetLength);
     }
     else
     {
@@ -104,7 +103,13 @@ bool SFE_MMC5983MA_IO::readMultipleBytes(const uint8_t registerAddress, uint8_t 
     bool success = true;
     if (useSPI)
     {
-        const size_t received_bytes = master.transfer(registerAddress | SPI_READ, buffer, packetLength);
+        dma_tx_buf[0] = registerAddress | SPI_READ;
+        memset(dma_rx_buf, 0, BUFFER_SIZE);
+        master.queue(dma_tx_buf, NULL, 1);
+        master.queue(NULL, dma_rx_buf, packetLength);
+        master.wait();
+        const std::vector<size_t> received_bytes = master.wait();
+        memcpy(buffer, &received_bytes[1], packetLength);
     }
     else
     {
@@ -141,18 +146,18 @@ bool SFE_MMC5983MA_IO::readSingleByte(const uint8_t registerAddress, uint8_t *bu
     return success;
 }
 
-bool SFE_MMC5983MA_IO::writeSingleByte(const uint8_t registerAddress, const uint8_t value)
+bool SFE_MMC5983MA_IO::writeSingleByte(const uint8_t registerAddress, uint8_t *value)
 {
     bool success = true;
     if (useSPI)
     {
-        return writeMultipleBytes(registerAddress, buffer, 1);
+        return writeMultipleBytes(registerAddress, value, 1);
     }
     else
     {
         _i2cPort->beginTransmission(I2C_ADDR);
         _i2cPort->write(registerAddress);
-        _i2cPort->write(value);
+        _i2cPort->write(value[0]);
         success = _i2cPort->endTransmission() == 0;
     }
     return success;
@@ -163,7 +168,7 @@ bool SFE_MMC5983MA_IO::setRegisterBit(const uint8_t registerAddress, const uint8
     uint8_t value = 0;
     bool success = readSingleByte(registerAddress, &value);
     value |= bitMask;
-    success &= writeSingleByte(registerAddress, value);
+    success &= writeSingleByte(registerAddress, &value);
     return success;
 }
 
@@ -172,7 +177,7 @@ bool SFE_MMC5983MA_IO::clearRegisterBit(const uint8_t registerAddress, const uin
     uint8_t value = 0;
     bool success = readSingleByte(registerAddress, &value);
     value &= ~bitMask;
-    success &= writeSingleByte(registerAddress, value);
+    success &= writeSingleByte(registerAddress, &value);
     return success;
 }
 
