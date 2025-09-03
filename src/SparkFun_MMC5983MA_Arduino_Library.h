@@ -24,8 +24,6 @@
 class SFE_MMC5983MA
 {
 private:
-  // I2C communication object instance.
-  SFE_MMC5983MA_IO mmc_io;
   // Error callback function pointer.
   // Function must accept a SF_MMC5983MA_ERROR as errorCode.
   void (*errorCallback)(SF_MMC5983MA_ERROR errorCode) = nullptr;
@@ -61,6 +59,9 @@ public:
   // Default destructor.
   ~SFE_MMC5983MA() = default;
 
+  // I2C communication object instance.
+  SFE_MMC5983MA_IO mmc_io;
+
   // Sets the error callback function.
   void setErrorCallback(void (*errorCallback)(SF_MMC5983MA_ERROR errorCode));
 
@@ -72,6 +73,7 @@ public:
 
   // Initializes MMC5983MA using SPI
   bool begin(uint8_t csPin, SPIClass& spiPort = SPI);
+  bool begin(uint8_t csPin, SPISettings userSettings);
   bool begin(uint8_t csPin, SPISettings userSettings, SPIClass& spiPort = SPI);
 
   // Polls if MMC5983MA is connected and if chip ID matches MMC5983MA chip id.

@@ -47,6 +47,9 @@ public:
   bool begin(const uint8_t csPin, SPIClass &spiPort = SPI);
 
   // Configures the SPI I/O layer with the given chip select and SPI settings provided by the user.
+  bool begin(const uint8_t csPin, SPISettings userSettings);
+
+  // Configures the SPI I/O layer with the given chip select and SPI settings provided by the user. and the spiClass
   bool begin(const uint8_t csPin, SPISettings userSettings, SPIClass &spiPort = SPI);
 
   // Returns true if we get the correct product ID from the device.

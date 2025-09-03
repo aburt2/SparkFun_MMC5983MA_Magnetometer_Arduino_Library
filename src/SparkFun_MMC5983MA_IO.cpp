@@ -36,11 +36,23 @@ bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPIClass &spiPort)
 {
     useSPI = true;
     _csPin = csPin;
-    digitalWrite(_csPin, HIGH);
     pinMode(_csPin, OUTPUT);
+    digitalWrite(_csPin, HIGH);
     _spiPort = &spiPort;
 
     initSPISettings();
+
+    return isConnected();
+}
+
+bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPISettings userSettings)
+{
+    useSPI = true;
+    _csPin = csPin;
+    pinMode(_csPin, OUTPUT);
+    digitalWrite(_csPin, HIGH);
+
+    _mmcSpiSettings = userSettings;
 
     return isConnected();
 }
@@ -49,8 +61,8 @@ bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPISettings userSettings, SPIC
 {
     useSPI = true;
     _csPin = csPin;
-    digitalWrite(_csPin, HIGH);
     pinMode(_csPin, OUTPUT);
+    digitalWrite(_csPin, HIGH);
     _spiPort = &spiPort;
 
     _mmcSpiSettings = userSettings;
