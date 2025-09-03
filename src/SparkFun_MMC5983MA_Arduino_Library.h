@@ -53,6 +53,8 @@ private:
   uint16_t getTimeout();
 
 public:
+  // Saved product ID
+  uint8_t product_id = 0; 
   // Default constructor.
   SFE_MMC5983MA() = default;
 

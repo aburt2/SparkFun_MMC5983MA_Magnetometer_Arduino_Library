@@ -218,6 +218,7 @@ bool SFE_MMC5983MA::isConnected()
     // Poll device for its ID.
     uint8_t response = 0;
     bool success = mmc_io.readSingleByte(PROD_ID_REG, &response);
+    product_id = response;
 
     if (!success)
     {
