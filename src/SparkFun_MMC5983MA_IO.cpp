@@ -32,7 +32,7 @@ void SFE_MMC5983MA_IO::initSPISettings()
     _mmcSpiSettings = SPISettings(2000000, MSBFIRST, SPI_MODE0);
 }
 
-bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPIClass &spiPort)
+bool SFE_MMC5983MA_IO::begin(uint8_t csPin, SPIClass &spiPort)
 {
     useSPI = true;
     _csPin = csPin;
@@ -45,7 +45,7 @@ bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPIClass &spiPort)
     return true;
 }
 
-bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPISettings userSettings)
+bool SFE_MMC5983MA_IO::begin(uint8_t csPin, SPISettings userSettings)
 {
     useSPI = true;
     _csPin = csPin;
@@ -57,7 +57,7 @@ bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPISettings userSettings)
     return true;
 }
 
-bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPISettings userSettings, SPIClass &spiPort)
+bool SFE_MMC5983MA_IO::begin(uint8_t csPin, SPISettings userSettings, SPIClass &spiPort)
 {
     useSPI = true;
     _csPin = csPin;
@@ -151,12 +151,7 @@ bool SFE_MMC5983MA_IO::readSingleByte(const uint8_t registerAddress, uint8_t *bu
     bool success = true;
     if (useSPI)
     {
-        _spiPort->beginTransaction(_mmcSpiSettings);
-        digitalWrite(_csPin, LOW);
-        _spiPort->transfer(READ_REG(registerAddress));
-        *buffer = _spiPort->transfer(DUMMY);
-        digitalWrite(_csPin, HIGH);
-        _spiPort->endTransaction();
+        return readMultipleBytes(registerAddress, buffer, 1);
     }
     else
     {

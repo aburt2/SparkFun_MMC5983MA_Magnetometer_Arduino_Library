@@ -30,7 +30,7 @@ public:
   TwoWire *_i2cPort = nullptr;
   uint8_t _address = 0;
   bool useSPI = false;
-  
+
   // Default empty constructor.
   SFE_MMC5983MA_IO() = default;
 
@@ -44,13 +44,13 @@ public:
   bool begin(TwoWire &wirePort);
 
   // Configures and starts the SPI I/O layer.
-  bool begin(const uint8_t csPin, SPIClass &spiPort = SPI);
+  bool begin(uint8_t csPin, SPIClass &spiPort = SPI);
 
   // Configures the SPI I/O layer with the given chip select and SPI settings provided by the user.
-  bool begin(const uint8_t csPin, SPISettings userSettings);
+  bool begin(uint8_t csPin, SPISettings userSettings);
 
   // Configures the SPI I/O layer with the given chip select and SPI settings provided by the user. and the spiClass
-  bool begin(const uint8_t csPin, SPISettings userSettings, SPIClass &spiPort);
+  bool begin(uint8_t csPin, SPISettings userSettings, SPIClass &spiPort);
 
   // Returns true if we get the correct product ID from the device.
   bool isConnected();
