@@ -16,7 +16,7 @@
 #include "SparkFun_MMC5983MA_Arduino_Library_Constants.h"
 
 // Read operations must have the most significant bit set
-#define READ_REG(x) (0x80 | x)
+#define SPI_READ 0x80
 
 bool SFE_MMC5983MA_IO::begin(TwoWire &i2cPort)
 {
@@ -77,7 +77,7 @@ bool SFE_MMC5983MA_IO::isConnected()
     {
         _spiPort->beginTransaction(_mmcSpiSettings);
         digitalWrite(_csPin, LOW);
-        _spiPort->transfer(READ_REG(PROD_ID_REG));
+        _spiPort->transfer(PROD_ID_REG | SPI_READ);
         uint8_t readback = _spiPort->transfer(DUMMY);
         digitalWrite(_csPin, HIGH);
         _spiPort->endTransaction();
@@ -104,7 +104,7 @@ bool SFE_MMC5983MA_IO::writeMultipleBytes(const uint8_t registerAddress, uint8_t
     {
         _spiPort->beginTransaction(_mmcSpiSettings);
         digitalWrite(_csPin, LOW);
-        _spiPort->transfer(registerAddress);
+        _spiPort->transfer(registerAddress | SPI_READ);
         _spiPort->transfer(buffer, packetLength);
         digitalWrite(_csPin, HIGH);
         _spiPort->endTransaction();
@@ -127,7 +127,7 @@ bool SFE_MMC5983MA_IO::readMultipleBytes(const uint8_t registerAddress, uint8_t 
     {
         _spiPort->beginTransaction(_mmcSpiSettings);
         digitalWrite(_csPin, LOW);
-        _spiPort->transfer(READ_REG(registerAddress));
+        _spiPort->transfer(registerAddress | SPI_READ);
         _spiPort->transfer(buffer, packetLength);
         digitalWrite(_csPin, HIGH);
         _spiPort->endTransaction();
