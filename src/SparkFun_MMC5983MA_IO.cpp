@@ -51,8 +51,7 @@ bool SFE_MMC5983MA_IO::begin(spi_config cfg, SPISettings userSettings)
     mag_ctx.cfg = cfg;
 
     spi_device_interface_config_t devcfg = {
-        .command_bits = 1,
-        .address_bits = 7,
+        .address_bits = 8,
         .mode = userSettings._dataMode,          //SPI mode 3
         .clock_speed_hz = userSettings._clock,
         .input_delay_ns = 50, // according to datasheet
@@ -111,7 +110,6 @@ bool SFE_MMC5983MA_IO::writeMultipleBytes(const uint8_t registerAddress, uint8_t
         }
 
         spi_transaction_t t = {
-            .cmd = SPI_CMD_HD_WRBUF,
             .addr = registerAddress,
             .length = packetLength,
             .user = &mag_ctx,
@@ -140,8 +138,7 @@ bool SFE_MMC5983MA_IO::readMultipleBytes(const uint8_t registerAddress, uint8_t 
     if (useSPI)
     {
         spi_transaction_t t = {
-            .cmd = SPI_CMD_HD_RDBUF,
-            .addr = registerAddress,
+            .addr = SPI_READ | registerAddress,
             .rxlength = packetLength,
             .user = &mag_ctx,
             .rx_buffer = buffer,
@@ -172,8 +169,7 @@ bool SFE_MMC5983MA_IO::readSingleByte(const uint8_t registerAddress, uint8_t *bu
     {
         spi_transaction_t t = {
             .flags = SPI_TRANS_USE_RXDATA,
-            .cmd = SPI_CMD_HD_RDBUF,
-            .addr = registerAddress,
+            .addr = SPI_READ | registerAddress,
             .rxlength = 8,
             .user = &mag_ctx,
         };
@@ -210,7 +206,6 @@ bool SFE_MMC5983MA_IO::writeSingleByte(const uint8_t registerAddress, uint8_t va
 
         spi_transaction_t t = {
             .flags = SPI_TRANS_USE_TXDATA,
-            .cmd = SPI_CMD_HD_WRBUF,
             .addr = registerAddress,
             .length = 8,
             .user = &mag_ctx,
