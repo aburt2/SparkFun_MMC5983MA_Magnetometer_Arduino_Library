@@ -42,7 +42,7 @@ bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPIClass &spiPort)
 
     initSPISettings();
 
-    return isConnected();
+    return true;
 }
 
 bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPISettings userSettings)
@@ -54,7 +54,7 @@ bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPISettings userSettings)
 
     _mmcSpiSettings = userSettings;
 
-    return isConnected();
+    return true;
 }
 
 bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPISettings userSettings, SPIClass &spiPort)
@@ -67,7 +67,7 @@ bool SFE_MMC5983MA_IO::begin(const uint8_t csPin, SPISettings userSettings, SPIC
 
     _mmcSpiSettings = userSettings;
 
-    return isConnected();
+    return true;
 }
 
 bool SFE_MMC5983MA_IO::isConnected()
